@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>房贷计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #667eea;
+        }
+
+        .input-row {
+            position: relative;
+        }
+
+        .input-row .suffix {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        .input-row input {
+            padding-right: 40px;
+        }
+
+        .mode-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: #fff;
+        }
+
+        .mode-btn:hover {
+            border-color: #667eea;
+        }
+
+        .btn-calc {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+            margin-bottom: 24px;
+        }
+
+        .btn-calc:hover {
+            opacity: 0.9;
+        }
+
+        .result {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item .label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .result-item .value {
+            color: #333;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .result-item .value.highlight {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .detail-hint {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>房贷计算器</h1>
+
+        <div class="form-group">
+            <label>房屋总价（万元）</label>
+            <div class="input-row">
+                <input type="number" id="housePrice" placeholder="请输入房屋总价" value="200">
+                <span class="suffix">万元</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>首付比例（%）</label>
+            <div class="input-row">
+                <input type="number" id="downPaymentRatio" placeholder="请输入首付比例" value="30" min="0" max="100">
+                <span class="suffix">%</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>贷款年限</label>
+            <div class="input-row">
+                <input type="number" id="loanYears" placeholder="请输入贷款年限" value="30" min="1" max="50">
+                <span class="suffix">年</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>年利率（%）</label>
+            <div class="input-row">
+                <input type="number" id="interestRate" placeholder="请输入年利率" value="3.25" step="0.01">
+                <span class="suffix">%</span>
+            </div>
+        </div>
+
+        <div class="mode-group">
+            <button class="mode-btn active" data-mode="equal-installment">等额本息</button>
+            <button class="mode-btn" data-mode="equal-principal">等额本金</button>
+        </div>
+
+        <button class="btn-calc" onclick="calculate()">开始计算</button>
+
+        <div class="result" id="result">
+            <div class="result-item">
+                <span class="label">贷款金额</span>
+                <span class="value" id="loanAmount">-</span>
+            </div>
+            <div class="result-item">
+                <span class="label">首月月供</span>
+                <span class="value highlight" id="monthlyPayment">-</span>
+            </div>
+            <div class="result-item">
+                <span class="label">还款总额</span>
+                <span class="value" id="totalPayment">-</span>
+            </div>
+            <div class="result-item">
+                <span class="label">支付利息</span>
+                <span class="value" id="totalInterest">-</span>
+            </div>
+            <div class="detail-hint" id="detailHint"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'equal-installment';
+
+        // 切换还款模式
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentMode = this.dataset.mode;
+            });
+        });
+
+        function formatMoney(num) {
+            if (Math.abs(num) >= 10000) {
+                return (num / 10000).toFixed(2) + ' 万元';
+            }
+            return num.toFixed(2) + ' 元';
+        }
+
+        function calculate() {
+            const housePrice = parseFloat(document.getElementById('housePrice').value) * 10000;
+            const downRatio = parseFloat(document.getElementById('downPaymentRatio').value) / 100;
+            const years = parseInt(document.getElementById('loanYears').value);
+            const annualRate = parseFloat(document.getElementById('interestRate').value) / 100;
+
+            if (isNaN(housePrice) || isNaN(downRatio) || isNaN(years) || isNaN(annualRate) ||
+                housePrice <= 0 || downRatio < 0 || downRatio >= 1 || years <= 0 || annualRate <= 0) {
+                alert('请填写所有字段的有效值');
+                return;
+            }
+
+            const loanAmount = housePrice * (1 - downRatio);
+            const months = years * 12;
+            const monthlyRate = annualRate / 12;
+
+            let monthlyPayment, totalPayment, totalInterest;
+            const result = document.getElementById('result');
+            const detailHint = document.getElementById('detailHint');
+
+            if (currentMode === 'equal-installment') {
+                // 等额本息：每月还款 = 贷款本金 × 月利率 × (1+月利率)^月数 / ((1+月利率)^月数 - 1)
+                const factor = Math.pow(1 + monthlyRate, months);
+                monthlyPayment = loanAmount * monthlyRate * factor / (factor - 1);
+                totalPayment = monthlyPayment * months;
+                totalInterest = totalPayment - loanAmount;
+
+                document.getElementById('monthlyPayment').textContent = formatMoney(monthlyPayment);
+                detailHint.textContent = '等额本息：每月还款金额相同';
+            } else {
+                // 等额本金：每月还本金相同，利息逐月递减
+                const monthlyPrincipal = loanAmount / months;
+                const firstMonthPayment = monthlyPrincipal + loanAmount * monthlyRate;
+                const lastMonthPayment = monthlyPrincipal + monthlyPrincipal * monthlyRate;
+                totalInterest = (firstMonthPayment + lastMonthPayment) * months / 2 - loanAmount;
+                totalPayment = loanAmount + totalInterest;
+
+                document.getElementById('monthlyPayment').textContent = formatMoney(firstMonthPayment);
+                detailHint.textContent = '等额本金：月供逐月递减，首月最高';
+            }
+
+            document.getElementById('loanAmount').textContent = formatMoney(loanAmount);
+            document.getElementById('totalPayment').textContent = formatMoney(totalPayment);
+            document.getElementById('totalInterest').textContent = formatMoney(totalInterest);
+
+            result.classList.add('show');
+        }
+
+        // 页面加载时自动计算一次
+        calculate();
+    </script>
+</body>
+</html>
